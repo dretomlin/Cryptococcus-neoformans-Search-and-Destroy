@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-# LDA implementation using gensim
-# none of this will have been tested as of 10/14, but 
-# as soon as we have the documents parsed and 
-# ready to go we will test it out
+#LDA implementation using gensim
+#none of this will have been tested as of 10/14, but 
+#as soon as we have the documents parsed and 
+#ready to go we will test it out
 
-# note: much of the code is derived from the pipeline
-# of priya dwivedi https://github.com/priya-dwivedi/Deep-Learning/blob/master/topic_modeling/LDA_Newsgroup.ipynb
+#note: much of the code is derived from the pipeline
+#of priya dwivedi https://github.com/priya-dwivedi/Deep-Learning/blob/master/topic_modeling/LDA_Newsgroup.ipynb
 
 import re
 import numpy as np
@@ -22,8 +22,7 @@ import spacy
 #plotting
 #import pyLDAvis
 #import pyLDAvis.gensim
-#import matplotlib.pyplot as plt
-#os
+import matplotlib.pyplot as plt
 import os
 import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.ERROR)
@@ -106,9 +105,9 @@ for filename in os.listdir('testingFiles'):
         testingLabelList.append(1 if filename not in positiveNameList else 0)
 
 
-# ##PREPROCESSING FOR TRAINING DATA
+###PREPROCESSING FOR TRAINING DATA
 
-# for doc in data:
+#for doc in data:
 #    print(doc[0:10])
 
 data = [re.sub('\s+', ' ', sent) for sent in data]
@@ -175,7 +174,7 @@ doc_lda = lda_model[corpus]
 
 
 
-# ##PREPROCESSING FOR TESTING DATA
+###PREPROCESSING FOR TESTING DATA
 
 testingData = [re.sub('\s+', ' ', sent) for sent in testingData]
 testingData = [re.sub("\'", "", sent) for sent in testingData]
@@ -248,9 +247,9 @@ def format_topics_sentences_v2(ldamodel=lda_model, corpus=corpus, texts=data):
     #sent_topics_df = pd.concat([sent_topics_df, contents], axis=1)
     return(sent_topics_df)
 
-# looks like I made a second fucntion to format topic percentages;
-# frankly I really hope its mapping correctly
-# I need to figure out how to attach labels to them
+#looks like I made a second fucntion to format topic percentages;
+#frankly I really hope its mapping correctly
+#I need to figure out how to attach labels to them
 
 
 #print(lda_model[id2word.doc2bow(data_lemmatized[5])])
@@ -278,8 +277,8 @@ csv = df_topic_sents_keywords[names[:kTopics]+[names[-2]]].copy().to_csv()
 testing_csv = df_testing_topics[names[:kTopics]+[names[-2]]].copy().to_csv()
 
 # For printing the dataframes
-# print(df_topic_sents_keywords) #these are the topics mapped to the documents #it is a pandas dataframe
-# print(df_testing_topics) #these are the topics mapped to the documents #it is a pandas dataframe
+#print(df_topic_sents_keywords) #these are the topics mapped to the documents #it is a pandas dataframe
+#print(df_testing_topics) #these are the topics mapped to the documents #it is a pandas dataframe
 
 print('id', end="")
 print(csv)
@@ -294,23 +293,139 @@ pprint(lda_model.print_topics()) #these are the acutal topics
 # Data preprocessing step for the unseen document
 
 
-# for score in lda_model[bow_vector]:
-#    print("Score: {}\t Topic: {}".format(score, lda_model.print_topic(index, 5)))
-# vector=lda_model(data_lemmatized[0])
-# doc_lda = lda_model[corpus]
+#for score in lda_model[bow_vector]:
+#print("Score: {}\t Topic: {}".format(score, lda_model.print_topic(index, 5)))
+#vector=lda_model(data_lemmatized[0])
+#doc_lda = lda_model[corpus]
 
-# print scores for how good the models are:
+#print scores for how good the models are:
 # Compute Perplexity
-# print('\nPerplexity: ', lda_model.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
+print('\nPerplexity: ', lda_model.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
+
+
+
+#LDAMallet stuff
+mallet_path = "/home/deandret/school-projects/Cryptococcus-neoformans-Search-and-Destroy/mallet-2.0.8/bin/mallet"
+
+ldamallet = gensim.models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=10, id2word=id2word)
+
+# Show Topics
+pprint(ldamallet.show_topics(formatted=False))
 
 # Compute Coherence Score
-# coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
-# coherence_lda = coherence_model_lda.get_coherence()
-# print('\nCoherence Score: ', coherence_lda)
+coherence_model_ldamallet = CoherenceModel(model=ldamallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+coherence_ldamallet = coherence_model_ldamallet.get_coherence()
+print('\nCoherence Score: ', coherence_ldamallet)
+
+
+# Compute Coherence Score
+coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+coherence_lda = coherence_model_lda.get_coherence()
+print('\nCoherence Score: ', coherence_lda)
+
+def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
+    """
+        Compute c_v coherence for various number of topics
+
+        Parameters:
+        ----------
+        dictionary : Gensim dictionary
+        corpus : Gensim corpus
+        texts : List of input texts
+        limit : Max num of topics
+
+        Returns:
+        -------
+        model_list : List of LDA topic models
+        coherence_values : Coherence values corresponding to the LDA model with respective number of topics
+    """
+    coherence_values = []
+    model_list = []
+    for num_topics in range(start, limit, step):
+        model = gensim.models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=num_topics, id2word=id2word)
+        model_list.append(model)
+        coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
+        coherence_values.append(coherencemodel.get_coherence())
+
+    return model_list, coherence_values
+"""
+model_list, coherence_values = compute_coherence_values(dictionary=id2word, corpus=corpus, texts=data_lemmatized, start=2, limit=11, step=1)
+
+# Show graph
+limit=11; start=2; step=1;
+x = range(start, limit, step)
+plt.plot(x, coherence_values)
+plt.xlabel("Num Topics")
+plt.ylabel("Coherence score")
+plt.legend(("coherence_values"), loc='best')
+plt.savefig("chose_model.png")
+
+# Print the coherence scores
+for m, cv in zip(x, coherence_values):
+        print("Num Topics =", m, " has Coherence Value of", round(cv, 4))
+"""
+
+# Select the model and print the topics
+optimal_model = ldamallet
+model_topics = optimal_model.show_topics(formatted=False)
+pprint(optimal_model.print_topics(num_words=10))
+
+
+def format_topics_sentences(ldamodel=lda_model, corpus=corpus, texts=data):
+    # Init output
+    sent_topics_df = pd.DataFrame()
+
+    # Get main topic in each document
+    for i, row in enumerate(ldamodel[corpus]):
+        row = sorted(row, key=lambda x: (x[1]), reverse=True)
+        # Get the Dominant topic, Perc Contribution and Keywords for each document
+        for j, (topic_num, prop_topic) in enumerate(row):
+            if j == 0:  # => dominant topic
+                wp = ldamodel.show_topic(topic_num)
+                topic_keywords = ", ".join([word for word, prop in wp])
+                sent_topics_df = sent_topics_df.append(pd.Series([int(topic_num), round(prop_topic,4), topic_keywords]), ignore_index=True)
+        
+        else:
+            break
+    sent_topics_df.columns = ['Dominant_Topic', 'Perc_Contribution', 'Topic_Keywords']
+
+    # Add original text to the end of the output
+    contents = pd.Series(texts)
+    sent_topics_df = pd.concat([sent_topics_df, contents], axis=1)
+    return(sent_topics_df)
+
+df_topic_sents_keywords = format_topics_sentences(ldamodel=optimal_model, corpus=corpus, texts=data)
+
+# Format
+df_dominant_topic = df_topic_sents_keywords.reset_index()
+df_dominant_topic.columns = ['Document_No', 'Dominant_Topic', 'Topic_Perc_Contrib', 'Keywords', 'Text']
+
+# Show
+df_dominant_topic.head(10)
+
+"""
+
+# Group top 5 sentences under each topic
+sent_topics_sorteddf_mallet = pd.DataFrame()
+
+sent_topics_outdf_grpd = df_topic_sents_keywords.groupby('Dominant_Topic')
+
+for i, grp in sent_topics_outdf_grpd:
+    sent_topics_sorteddf_mallet = pd.concat([sent_topics_sorteddf_mallet, grp.sort_values(['Perc_Contribution'], ascending=[0]).head(1)], axis=0)
+
+#Reset Index    
+sent_topics_sorteddf_mallet.reset_index(drop=True, inplace=True)
+
+# Format
+sent_topics_sorteddf_mallet.columns = ['Topic_Num', "Topic_Perc_Contrib", "Keywords", "Text"]
+
+# Show
+sent_topics_sorteddf_mallet.head()
+"""
 
 # Visualize the topics
-# pyLDAvis.enable_notebook()
-# vis = pyLDAvis.gensim.prepare(lda_model, corpus, id2word)
-# vis
+#pyLDAvis.enable_notebook()
+#vis = pyLDAvis.gensim.prepare(lda_model, corpus, id2word)
+#vis
 
 
