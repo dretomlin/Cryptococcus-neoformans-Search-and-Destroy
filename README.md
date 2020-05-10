@@ -1,6 +1,7 @@
 ## C. Neoformans Identification using Academic Paper Texts
 
-#### by DeAndre Tomlinson, Emmett Flynn, and Paul Brunts
+### by DeAndre Tomlinson, Pfrender Lab 
+#### Contributors: Emmett Flynn, and Paul Brunts
 
 ### Description
 This repository contains code for processing and classifying papers along the
@@ -14,7 +15,7 @@ difficult.
 This repository contains the underlying papers to do appropriate classification.
 To run the classification for yourself, first download the repo and run:
 
-`python3 ldaMultipleTopics.py`
+`python3 ldaTopicGenerator.py`
 
 This will output two sets of topic weights to the command line in csv form. 
 To form your own training an testing files, copy the first of these csv outputs
@@ -22,34 +23,21 @@ To form your own training an testing files, copy the first of these csv outputs
 second (roughly 30 documents or lines) to your testing file.
 
 To avoid this step, you can use one of the pre generated datasets. We recommend
-that you use the data set in `./csvs/training_stemv2` and 
-`./csvs/testing_stemv2`. (These datasets are also hardcoded into the neural 
-network code stored in `keranet.py`.
+that you use the data set in `ltg_*_training.csv` and 
+`ltg_*_testing_.csv`. 
 
 Then choose your classifier. Below are mappings of classifiers to the filename
-associated with that classifier. All classifiers are called with the following
-convention (with the exception of the neural network) :
+associated with that classifier.
 
 `python3 CLASSIFIER PATH_TO_TRAINING_CSV PATH_TO_TESTING_CSV`
 
-For instance, to use the decision tree classifier to train and predict using
-the csvs recommended above, the command would be:
+For instance, to use the random forest classifier to train and predict using
+the csvs, the command would be:
 
-`python3 tree.py ./csvs/training_stemv2 ./csvs/testing_stemv2`
+`python3 rforest_4k.py ltg_4k_training.csv ltg_4k_testing_.csv`
 
-Classifer:                File:
-SVM                       `svm.py`
-KNN                       `KNN.py`
-tree                      `tree.py`
-forest                    `forest.py`
-forest (many iterations)  `forest2.py`
+Package dependencies (with anacondaa3 as a base environment):
+<ul>
+<li>gensim</li><li>spacy</li><li>seaborn</li><li>scikit-plt</li><li>pyLDAvis</li>
 
 
-Finally the neural network is called by simply invoking the file:
-`python3 keranet.py`
-
-
-There are many package dependencies, too many to list here, but they include
-keras, gensim, and sklearn.
-
-*Optimal Forest2.py parameters -> nestimators = 7, line 48 range should be to 450.
