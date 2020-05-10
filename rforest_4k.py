@@ -99,17 +99,6 @@ for i in range(250):
         realFN=fn
     
 
-
-
-#plot_tree(clf)
-#dot_data=tree.export_graphviz(clf, out_file=None, feature_names=features, 
-#        class_names=labels)
-#graph=graphviz.Source(dot_data)
-#graph.render("tree")
-
-
-#labels = [randint(0,1) for i in range(len(truth))]
-
 print("Note: tree creation is not always deterministic.")
 print("Number of topics: ", len(names))
 print("% of docs that are positive: ", (tp+fn)/(tp+fn+fp+tn))
@@ -134,26 +123,11 @@ pos_probs = yhat[:,1]
 precision2, recall2, thresholds = precision_recall_curve(truth2, pos_probs)
 print("These are the labels: ", labels)
 print("These are the predicted labels after classification: ", truth2)
-#print(precision2)
-#print(recall2)
-#print(thresholds)
-#print(yhat)
-#disp = plot_precision_recall_curve(clf, Attribute, Label)
-"""
-fig, ax = plt.subplots()
 
-ax.plot(recall2, precision2, marker='.', label = 'Precision-Recall')
-ax.set_title('Precision-Recall Curve')
-ax.set_xlabel('Recall')
-ax.set_ylabel('Precision')
-fig.savefig('p-recall.png')
-plt.close(fig)
-"""
 #fig1, ax1 =plt.subplots()
 #fpr, tpr, _ = roc_curve(truth2, pos_probs)
 
 """
-
 print(fpr, tpr)
 ax1.plot(fpr, tpr, marker=".", label='ROC AUC')
 ax1.set_title('ROC-AUC Curve')
@@ -168,9 +142,6 @@ roc_auc_result = roc_auc_score(truth2, pos_probs)
 print(auc_score)
 print(roc_auc_result)
 
-#pprobs = np.array(yhat[:,1])
-#d2pprobs = np.column_stack((1-pprobs, pprobs))
-#real_posprobs = np.concatenate((1-pprobs, pprobs),axis=1)
 d2pprobs = np.array(yhat)
 skplt.metrics.plot_roc(truth2, d2pprobs)
 plt.savefig('roc-4topics.png')
